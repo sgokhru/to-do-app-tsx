@@ -9,7 +9,8 @@ interface ToDoAppProps {};
 interface ToDoAppState {
   tasks: TaskModel[],
   newTaskId: number,
-  filter: string
+  filter: string,
+  addTask: boolean
 };
 class ToDoApp extends React.Component <ToDoAppProps, ToDoAppState> {
   constructor(props: ToDoAppProps) {
@@ -17,7 +18,8 @@ class ToDoApp extends React.Component <ToDoAppProps, ToDoAppState> {
     this.state = {
       tasks: [],
       newTaskId: 1,
-      filter: 'all'
+      filter: 'all',
+      addTask: false
     }
   }
   handleAdd = (employeeName: string, taskType: string, taskDescription: string) => {
@@ -27,11 +29,12 @@ class ToDoApp extends React.Component <ToDoAppProps, ToDoAppState> {
       id: newTaskId,
       employeeName: employeeName,
       taskType: taskType,
-      taskDescription: taskDescription
+      taskDescription: taskDescription,
+      time: Date.now()
     };
     newTaskId += 1;
     tasks.push(task);
-    this.setState({tasks: tasks, newTaskId: newTaskId});
+    this.setState({tasks: tasks, newTaskId: newTaskId, addTask: false});
   }
   handleUpdate = (id: number, employeeName: string, taskType: string, taskDescription: string) => {
     let updatedTasks = this.state.tasks.map(task => {
@@ -39,6 +42,7 @@ class ToDoApp extends React.Component <ToDoAppProps, ToDoAppState> {
         task.employeeName = employeeName;
         task.taskType = taskType;
         task.taskDescription = taskDescription;
+        task.time = Date.now();
       }
       return task;
     });
@@ -60,6 +64,11 @@ class ToDoApp extends React.Component <ToDoAppProps, ToDoAppState> {
       filter: filterValue
     });
   }
+  handleClickAddButton = () => {
+    this.setState({
+      addTask: true
+    });
+  }
   render() {
     return (
       <div className='container'>
@@ -67,6 +76,7 @@ class ToDoApp extends React.Component <ToDoAppProps, ToDoAppState> {
           <div><h1>Employee TODO List</h1></div>
           <div style={{float:'right', marginRight: 90}}><Filter filter={this.state.filter} handleFilter={this.handleFilter} /></div>
         </div>
+        { this.state.addTask ? <div><Form handleAdd={this.handleAdd} /></div> : <button type='button' onClick={this.handleClickAddButton}>+</button>}
         <br/>
         <Table
           tasks={this.state.tasks}
@@ -74,9 +84,6 @@ class ToDoApp extends React.Component <ToDoAppProps, ToDoAppState> {
           filter={this.state.filter}
           handleUpdate={this.handleUpdate}
           handleDelete={this.handleDelete} />
-
-        <h3>Add New Task</h3>
-        <div><Form handleAdd={this.handleAdd} /></div>
       </div>
     );
   }

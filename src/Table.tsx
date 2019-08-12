@@ -7,6 +7,7 @@ class TableHeader extends React.Component {
             <thead>
                 <tr>
                     <th>Id</th>
+                    <th>Time</th>
                     <th>Name</th>
                     <th>Task Type</th>
                     <th>Task Description</th>
@@ -68,9 +69,11 @@ class TableRow extends React.Component <TableRowProps, any> {
     }
     render() {
         const task = this.state;
+        let date = formatDate(this.props.task.time);
         return (
             <tr>
                 <td>{task.id}</td>
+                <td>{date}</td>
                 <td>{this.state.editing ? <input type='text' name='employeeName' value={task.employeeName} onChange={this.handleChange} /> : task.employeeName}</td>
                 <td>{this.state.editing ?
                 <select name='taskType' value={task.taskType} onChange={this.handleChange}>
@@ -98,7 +101,9 @@ interface TableProps {
 class Table extends React.Component <TableProps> {
     render() {
         let rows: any = [];
-        this.props.tasks.forEach(task => {
+        let tasks = this.props.tasks;
+        tasks.sort((a, b) => b.time - a.time);
+        tasks.forEach(task => {
         if (this.props.filter !== 'all' && this.props.filter !== task.taskType) {
             return;
         }
@@ -109,12 +114,20 @@ class Table extends React.Component <TableProps> {
             handleDelete={this.props.handleDelete} />);
         });
         return (
-            <table>
-                <TableHeader />
-                <tbody>{rows}</tbody>
-            </table>
+            <div>
+                <table>
+                    <TableHeader />
+                    <tbody>{rows}</tbody>
+                </table>
+                {rows.length <= 0 ? <p>No records found...</p> : '' }
+            </div>
         )
     }
+}
+function formatDate(date: number) {
+    let dateArray: any = new Date(date).toString();
+    dateArray = dateArray.split(' ');
+    return (dateArray[1] + '/' + dateArray[2] + '/' + dateArray[3] + ' ' + dateArray[4]);
 }
 
 export default Table;
