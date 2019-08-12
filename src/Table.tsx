@@ -32,7 +32,11 @@ class TableRow extends React.Component <TableRowProps, any> {
           employeeName: task.employeeName,
           taskType: task.taskType,
           taskDescription: task.taskDescription,
-          editing: false
+          editing: false,
+          formErrors: {employeeName: '', taskDescription: ''},
+          employeeNameValid: true,
+          taskDescriptionValid: true,
+          formValid: true
         };
     }
     handleChange = (e: any) => {
@@ -40,7 +44,30 @@ class TableRow extends React.Component <TableRowProps, any> {
         const value = e.target.value;
         this.setState({
             [name]: value
-        });
+        }, () => {this.validateField(name, value)});
+    }
+    validateField(name: string, value: string) {
+        let formErrors = this.state.formErrors;
+        let employeeNameValid = this.state.employeeNameValid;
+        let taskDescriptionValid = this.state.taskDescriptionValid;
+        switch(name) {
+            case 'employeeName':
+                employeeNameValid = value.match(/^[a-zA-Z ]{2,30}$/);
+                formErrors.employeeName = employeeNameValid ? '' : 'Employee name is not valid';
+                break;
+            case 'taskDescription':
+                taskDescriptionValid = value.length > 0;
+                formErrors.taskDescription = taskDescriptionValid ? '' : 'Task description is required';
+                break;
+            default:
+                break;
+        }
+        this.setState({
+            employeeNameValid: employeeNameValid,
+            taskDescriptionValid: taskDescriptionValid,
+            formErrors: formErrors,
+            formValid: employeeNameValid && taskDescriptionValid
+        })
     }
     handleUpdate = (e: any) => {
         e.preventDefault();
@@ -64,18 +91,23 @@ class TableRow extends React.Component <TableRowProps, any> {
             employeeName: task.employeeName,
             taskType: task.taskType,
             taskDescription: task.taskDescription,
-            editing: false
+            editing: false,
+            formErrors: {employeeName: '', taskDescription: ''},
+            employeeNameValid: true,
+            taskDescriptionValid: true,
+            formValid: true
         });
     }
     render() {
         const task = this.state;
         let date = formatDate(this.props.task.time);
+        const editing = this.state.editing;
         return (
             <tr>
                 <td>{task.id}</td>
                 <td>{date}</td>
-                <td>{this.state.editing ? <input type='text' name='employeeName' value={task.employeeName} onChange={this.handleChange} /> : task.employeeName}</td>
-                <td>{this.state.editing ?
+                <td>{editing ? <input className={this.state.formErrors.employeeName ? 'has-error' : ''} type='text' name='employeeName' value={task.employeeName} onChange={this.handleChange} /> : task.employeeName}</td>
+                <td>{editing ?
                 <select name='taskType' value={task.taskType} onChange={this.handleChange}>
                     <option value='ui'>UI</option>
                     <option value='backend'>Backend</option>
@@ -83,9 +115,9 @@ class TableRow extends React.Component <TableRowProps, any> {
                     <option value='qa'>QA</option>
                 </select> : task.taskType }
                 </td>
-                <td>{this.state.editing ? <input type='text' name='taskDescription' value={task.taskDescription} onChange={this.handleChange} /> : task.taskDescription }</td>
-                <td>{this.state.editing ? <button type='button' onClick={this.handleUpdate}>Update</button> : <button type='button' onClick={this.handleEdit}>Edit task</button> }</td>
-                <td>{!this.state.editing ? <button type='button' onClick={this.handleDelete}>Delete task</button> : <button type='button' onClick={this.cancelEdit}>Cancel</button>}</td>
+                <td>{editing ? <input type='text' className={this.state.formErrors.taskDescription ? 'has-error' : ''} name='taskDescription' value={task.taskDescription} onChange={this.handleChange} /> : task.taskDescription }</td>
+                <td>{editing ? <button type='button' onClick={this.handleUpdate} disabled={!this.state.formValid}>Update</button> : <button type='button' onClick={this.handleEdit}>Edit task</button> }</td>
+                <td>{!editing ? <button type='button' onClick={this.handleDelete}>Delete task</button> : <button type='button' onClick={this.cancelEdit}>Cancel</button>}</td>
             </tr>
         );
     }
@@ -95,6 +127,7 @@ interface TableProps {
     tasks: TaskModel[],
     filter: string,
     newTaskId: number,
+    search: string,
     handleUpdate: (id: number, employeeName: string, taskType: string, taskDescription: string) => void,
     handleDelete: (id: number) => void
 }
@@ -105,6 +138,9 @@ class Table extends React.Component <TableProps> {
         tasks.sort((a, b) => b.time - a.time);
         tasks.forEach(task => {
         if (this.props.filter !== 'all' && this.props.filter !== task.taskType) {
+            return;
+        }
+        if (task.employeeName.indexOf(this.props.search) === -1) {
             return;
         }
         rows.push(<TableRow

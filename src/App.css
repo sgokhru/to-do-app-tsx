@@ -20,3 +20,9 @@ th, td {
 form {
   width: 100%;
 }
+label{
+  margin-right: 20px
+}
+.has-error {
+  border: solid 1px red;
+}

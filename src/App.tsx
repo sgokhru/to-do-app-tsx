@@ -4,13 +4,15 @@ import TaskModel from './TaskModel';
 import Table from './Table';
 import Form from './Form';
 import Filter from './Filter';
+import Search from './search';
 
 interface ToDoAppProps {};
 interface ToDoAppState {
   tasks: TaskModel[],
   newTaskId: number,
   filter: string,
-  addTask: boolean
+  addTask: boolean,
+  search: string
 };
 class ToDoApp extends React.Component <ToDoAppProps, ToDoAppState> {
   constructor(props: ToDoAppProps) {
@@ -19,7 +21,8 @@ class ToDoApp extends React.Component <ToDoAppProps, ToDoAppState> {
       tasks: [],
       newTaskId: 1,
       filter: 'all',
-      addTask: false
+      addTask: false,
+      search: ''
     }
   }
   handleAdd = (employeeName: string, taskType: string, taskDescription: string) => {
@@ -69,12 +72,20 @@ class ToDoApp extends React.Component <ToDoAppProps, ToDoAppState> {
       addTask: true
     });
   }
+  handleSearch = (searchValue: string) => {
+    this.setState({
+      search: searchValue
+    });
+  }
   render() {
     return (
       <div className='container'>
         <div>
           <div><h1>Employee TODO List</h1></div>
-          <div style={{float:'right', marginRight: 90}}><Filter filter={this.state.filter} handleFilter={this.handleFilter} /></div>
+          <div style={{float:'right'}}>
+            <div style={{float: 'left', marginRight: 20}}><Search search={this.state.search} handleSearch={this.handleSearch} /></div>
+            <div style={{float: 'right', marginRight: 20}}><Filter filter={this.state.filter} handleFilter={this.handleFilter} /></div>
+          </div>
         </div>
         { this.state.addTask ? <div><Form handleAdd={this.handleAdd} /></div> : <button type='button' onClick={this.handleClickAddButton}>+</button>}
         <br/>
@@ -82,6 +93,7 @@ class ToDoApp extends React.Component <ToDoAppProps, ToDoAppState> {
           tasks={this.state.tasks}
           newTaskId={this.state.newTaskId}
           filter={this.state.filter}
+          search={this.state.search}
           handleUpdate={this.handleUpdate}
           handleDelete={this.handleDelete} />
       </div>
